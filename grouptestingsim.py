@@ -8,7 +8,7 @@
 # TODO: Allow support for other types of testing (currently only COMP)
 
 # The desired prevalance
-P = 0.03
+P = 0.5
 
 # The number of individuals
 I = 100
@@ -19,6 +19,7 @@ n = 10
 from random import random
 from statistics import mean
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Function that will build the test matrix and run the testing scheme
 def matrixSimulation():
@@ -43,8 +44,9 @@ def matrixSimulation():
 
 	rowTests = []
 	colTests = []
+	diagTests = []
 
-	# Perform 'tests' on rows and columns
+	# Perform 'tests' on rows and columns (and diags)
 	# If any individual is positive in the row/col, the entire test will return a 'positive' result
 
 	for row in range(n):
@@ -59,10 +61,18 @@ def matrixSimulation():
 			if (M[row][col] == 1):
 				colTests[col] = 1
 
+	for diag in range(n):
+		diagTests.append(0)
+		combo = np.concatenate((np.diagonal(M,diag),np.diagonal(M,-(n-diag))))
+		for idx in combo:
+			if idx == 1:
+				diagTests[diag] = 1
+		
+
 	#printM(M,rowTests,colTests)
 
 	# Perform recovery algorithm to determine DND/PDs
-	testPositives = COMP(rowTests,colTests)
+	testPositives = COMP(rowTests,colTests,diagTests)
 
 	# Compare results
 	# Define c = proportion of individuals correct to those incorrect/missing
@@ -88,7 +98,7 @@ def printM(M,rowTests,colTests):
 	print("Column Tests:",colTests)
 
 # Recovery algorithm using the COMP algorithm
-def COMP(rowTests,colTests):
+def COMP(rowTests,colTests,diagTests):
 	# Use COMP algorithm to find set of defectives
 	# The possible defectives
 	PD = []
@@ -106,6 +116,19 @@ def COMP(rowTests,colTests):
 			for y in range(len(colTests)):
 				if not((y*n+j) in DND):
 					DND.append(y*n+j)
+	for k in range(len(diagTests)):
+		n_array = []
+		for x in range(n):
+			row = []
+			for y in range(n):
+				row.append(x*n+y)
+			n_array.append(row)
+		if diagTests[k] == 0:
+			# Add entire diag to DND list
+			diag = np.concatenate((np.diagonal(n_array,k),np.diagonal(n_array,-(n-k))))
+			for item in diag:
+				if not item in DND:
+					DND.append(item)
 	
 	# Now determine the PDs where the PDs are whatever does not exist in the DNDs
 	for m in range(I):
@@ -140,21 +163,22 @@ print("Please input the number of simulations to be run: ")
 mc = int(input())
 monteCarlo(mc)
 '''
+
 sizes = []
 prevs = []
 results = []
 prev = 0.001
 while prev < 0.25:
 	prevs.append(prev)
-	n=10
+	n=20
 	P = prev
 	I = n*n
 	val = monteCarlo(1000) 
 	results.append(val)
-	prev += 0.005
+	prev += 0.01
 
 plt.plot(prevs,results)
-plt.title("Success Rates for 10x10 COMP Testing Scheme")
+plt.title("Success Rates for 20x20 COMP Testing Scheme (With Diagonal Testing)")
 plt.xlabel("Prevalance")
 plt.ylabel("Proportion of Individuals Correct")
 plt.show()
