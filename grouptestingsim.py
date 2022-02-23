@@ -59,7 +59,7 @@ def matrixSimulation():
 			if (M[row][col] == 1):
 				colTests[col] = 1
 
-	printM(M,rowTests,colTests)
+	#printM(M,rowTests,colTests)
 
 	# Perform recovery algorithm to determine DND/PDs
 	testPositives = COMP(rowTests,colTests)
@@ -76,9 +76,6 @@ def matrixSimulation():
 		c = 1.0
 	else:
 		c = (numCorrect+(I-totalCount))/I
-	print("True Positives:",truePositives)
-	print("Test Positives:",testPositives)
-	print("Proportion Correct: ",c)
 	return c
 
 # Debugging function for printing the test matrix and row/col tests
@@ -127,11 +124,11 @@ def monteCarlo(mc):
 	results = []
 	for i in range(mc):
 		results.append(matrixSimulation())
-	#return mean(results)
 	outputResults(results,mc)
+	return mean(results)
 
 # ------- MAIN --------
-
+'''
 print("Group Testing Simulation (COMP)")
 print("")
 print("Please input the matrix size n (where M is nxn): ")
@@ -147,18 +144,17 @@ sizes = []
 prevs = []
 results = []
 prev = 0.001
-while prev < 0.05:
+while prev < 0.25:
 	prevs.append(prev)
 	n=10
 	P = prev
 	I = n*n
-	val = monteCarlo(10000) 
+	val = monteCarlo(1000) 
 	results.append(val)
-	prev += 0.001
+	prev += 0.005
 
 plt.plot(prevs,results)
 plt.title("Success Rates for 10x10 COMP Testing Scheme")
-plt.xlabel("Prevelances")
+plt.xlabel("Prevalance")
 plt.ylabel("Proportion of Individuals Correct")
 plt.show()
-'''
