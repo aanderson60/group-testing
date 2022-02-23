@@ -18,6 +18,7 @@ n = 10
 
 from random import random
 from statistics import mean
+import matplotlib.pyplot as plt
 
 # Function that will build the test matrix and run the testing scheme
 def matrixSimulation():
@@ -58,7 +59,7 @@ def matrixSimulation():
 			if (M[row][col] == 1):
 				colTests[col] = 1
 
-	#printM(M,rowTests,colTests)
+	printM(M,rowTests,colTests)
 
 	# Perform recovery algorithm to determine DND/PDs
 	testPositives = COMP(rowTests,colTests)
@@ -72,9 +73,12 @@ def matrixSimulation():
 		if item in truePositives:
 			numCorrect+=1
 	if totalCount == 0:
-		c = 1
+		c = 1.0
 	else:
-		c = numCorrect/totalCount
+		c = (numCorrect+(I-totalCount))/I
+	print("True Positives:",truePositives)
+	print("Test Positives:",testPositives)
+	print("Proportion Correct: ",c)
 	return c
 
 # Debugging function for printing the test matrix and row/col tests
@@ -123,10 +127,11 @@ def monteCarlo(mc):
 	results = []
 	for i in range(mc):
 		results.append(matrixSimulation())
-
+	#return mean(results)
 	outputResults(results,mc)
 
 # ------- MAIN --------
+
 print("Group Testing Simulation (COMP)")
 print("")
 print("Please input the matrix size n (where M is nxn): ")
@@ -136,5 +141,24 @@ print("Please input the prevalance as a decimal value (0 to 1): ")
 P = float(input())
 print("Please input the number of simulations to be run: ")
 mc = int(input())
-
 monteCarlo(mc)
+'''
+sizes = []
+prevs = []
+results = []
+prev = 0.001
+while prev < 0.05:
+	prevs.append(prev)
+	n=10
+	P = prev
+	I = n*n
+	val = monteCarlo(10000) 
+	results.append(val)
+	prev += 0.001
+
+plt.plot(prevs,results)
+plt.title("Success Rates for 10x10 COMP Testing Scheme")
+plt.xlabel("Prevelances")
+plt.ylabel("Proportion of Individuals Correct")
+plt.show()
+'''
