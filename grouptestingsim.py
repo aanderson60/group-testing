@@ -75,17 +75,16 @@ def matrixSimulation():
 	testPositives = COMP(rowTests,colTests,diagTests)
 
 	# Compare results
-	# Define c = proportion of individuals correct to those incorrect/missing
-	c = 0
-	numCorrect = 0
+	# Define c = proportion of individuals incorrect to those correctly identified
+	numIncorrect = 0
 	totalCount = len(testPositives)
 	for item in testPositives:
-		if item in truePositives:
-			numCorrect+=1
-	if totalCount == 0:
-		c = 1.0
+		if not item in truePositives:
+			numIncorrect+=1
+	if totalCount == 0: # Case with no positive individuals
+		c = 0.0
 	else:
-		c = (numCorrect+(I-totalCount))/I
+		c = numIncorrect/I
 	return c
 
 # Debugging function for printing the test matrix and row/col tests
@@ -166,19 +165,21 @@ monteCarlo(mc)
 
 sizes = []
 prevs = []
+ns = []
 results = []
 prev = 0.001
-while prev < 0.25:
+n=10
+while prev < 0.05:
 	prevs.append(prev)
-	n=20
+	ns.append(n)
 	P = prev
 	I = n*n
 	val = monteCarlo(1000) 
-	results.append(val)
-	prev += 0.01
+	results.append(val*100)
+	prev += 0.001
 
 plt.plot(prevs,results)
-plt.title("Success Rates for 20x20 COMP Testing Scheme (With Diagonal Testing)")
+plt.title("False Negative Rates for 10x10 COMP Testing Scheme")
 plt.xlabel("Prevalance")
-plt.ylabel("Proportion of Individuals Correct")
+plt.ylabel("Percentage of False Negatives")
 plt.show()
