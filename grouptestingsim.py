@@ -137,6 +137,30 @@ def COMP(rowTests,colTests,diagTests):
 	# Assume the PDs are the Definite Defectives (DD)
 	return(PD)
 
+# Linear programming algorithm using scipy
+def linear_prog(rowTests,colTests,diagTests):
+	# Minimize z (Vector length n*n)
+	# If test is positive, each x element in that test Xti subject to, Xti*Zi >= 1
+	# If test is negative, each x element in that test Xti subject to, Xti*Zi = 0
+	# And each Zi is 0 or 1
+	# 
+	# Scipy parameters:
+	# c = output matrix (coefficients of z)
+	# A_ub = 2D array, inequality constraint - each row is one constraint set in the form A_ub*x <= b_ub
+	# b_ub = 1D array, upper bound on value of A_ub @ x
+	# A_eq = 2D array, equality constraint
+	# b_eq = 1D array, equality constraint vector
+	# Returns: scipy.optimize.OptimizeResult object
+	
+	# Generate empty output array of size I
+	# Not sure about this one
+	c = np.empty(I)
+
+	# Generate equality constraint vector (all zeros)
+	b_eq = np.zeros(I)
+
+	# Generate upper bound vector (is actually a lower bound in our specific case)
+
 # Output results
 def outputResults(results, mc):
 	print("Results for simulation of size ",mc,", a prevalance of ", P, " and a matrix size of ",n,"x",n," : ",round(mean(results),4),sep="")
