@@ -8,7 +8,7 @@
 # TODO: Allow support for other types of testing (currently only COMP)
 
 # The desired prevalance
-P = 0.5
+P = 0.01
 
 # The number of individuals
 I = 100
@@ -20,6 +20,7 @@ from random import random
 from statistics import mean
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.optimize import linprog
 
 # Function that will build the test matrix and run the testing scheme
 def matrixSimulation():
@@ -72,7 +73,9 @@ def matrixSimulation():
 	#printM(M,rowTests,colTests)
 
 	# Perform recovery algorithm to determine DND/PDs
-	testPositives = COMP(rowTests,colTests,diagTests)
+	#testPositives = COMP(rowTests,colTests,diagTests)
+	testPositives = linear_prog(rowTests,colTests)
+	printM(M,rowTests,colTests)
 
 	# Compare results
 	# Define c = proportion of individuals incorrect to those correctly identified
@@ -138,7 +141,7 @@ def COMP(rowTests,colTests,diagTests):
 	return(PD)
 
 # Linear programming algorithm using scipy
-def linear_prog(rowTests,colTests,diagTests):
+def linear_prog(rowTests,colTests):
 	# Minimize z (Vector length n*n)
 	# If test is positive, each x element in that test Xti subject to, Xti*Zi >= 1
 	# If test is negative, each x element in that test Xti subject to, Xti*Zi = 0
@@ -152,14 +155,49 @@ def linear_prog(rowTests,colTests,diagTests):
 	# b_eq = 1D array, equality constraint vector
 	# Returns: scipy.optimize.OptimizeResult object
 	
-	# Generate empty output array of size I
-	# Not sure about this one
-	c = np.empty(I)
-
-	# Generate equality constraint vector (all zeros)
-	b_eq = np.zeros(I)
+	# Min z1,z2,...,zn where n is the number of individuals
+	c = np.ones(I)
 
 	# Generate upper bound vector (is actually a lower bound in our specific case)
+	# >= 1 is the same as <= -1 in this case (multiply both sides by -1)
+	y_t = np.append(rowTests,colTests)
+	b_ub_t = []
+	b_eq_t = []
+	for item in y_t:
+		if item:
+			b_ub_t.append(-1)
+			b_eq_t.append(1)
+		else:
+			b_ub_t.append(0)
+			b_eq_t.append(0)
+	# Array with test number on rows and individual on the cols
+	# If an index is 1, it means the test corresponding to row contained the individual corresp to that col
+	A_ub = np.zeros((2*n,I))
+	# Fill row tests with indivs
+	for t in range(0,n):
+		for i in range(n*t,n*t+n):
+			A_ub[t][i] = -1
+
+	# Fill in col tests
+	for t in range(n,2*n):
+		for i in range(t-n,I,n):
+			A_ub[t][i] = -1
+
+	# Generate equality constraint vector (zero when test is 0)
+
+	A_eq = np.negative(A_ub)
+	
+
+	# Generate bounds of (0,1) for each z
+	z_bound = (0,1)
+	bounds = []
+	# Fill for every zi
+	for i in range(I):
+		bounds.append(z_bound)
+	result = linprog(c,A_ub,b_ub_t,A_eq,b_eq_t,bounds)
+	print(result["x"])
+	return result["x"]
+	
 
 # Output results
 def outputResults(results, mc):
@@ -185,7 +223,7 @@ P = float(input())
 print("Please input the number of simulations to be run: ")
 mc = int(input())
 monteCarlo(mc)
-'''
+
 
 sizes = []
 prevs = []
@@ -207,3 +245,5 @@ plt.title("False Negative Rates for 10x10 COMP Testing Scheme")
 plt.xlabel("Prevalance")
 plt.ylabel("Percentage of False Negatives")
 plt.show()
+'''
+matrixSimulation()
