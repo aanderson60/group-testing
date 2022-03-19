@@ -74,12 +74,15 @@ def matrixSimulation():
 
 	# Perform recovery algorithm to determine DND/PDs
 	#testPositives = COMP(rowTests,colTests,diagTests)
+	# LP Stuff
+	
 	floatResult = linear_prog(rowTests,colTests)
 	testPositives = []
 	for i,val in enumerate(floatResult):
 		# Assume positive result if val is >10^-2
 		if val > 0.01:
 			testPositives.append(i)
+	
 	# Compare results
 	# Define c = proportion of individuals incorrect to those correctly identified
 	numIncorrect = 0
@@ -232,18 +235,18 @@ prevs = []
 ns = []
 results = []
 prev = 0.01
-n=5
-while n < 15:
+n=2
+while n <= 40:
 	prevs.append(prev)
 	ns.append(n)
 	P = prev
 	I = n*n
 	val = monteCarlo(100) 
-	results.append(val*100)
-	n += 1
+	results.append(val)
+	n += 2
 
 plt.plot(ns,results)
-plt.title("False Negative Rates for 10x10 COMP Testing Scheme")
-plt.xlabel("Prevalance")
-plt.ylabel("Percentage of False Negatives")
+plt.title("False Negative Rates for NxN LP Testing Scheme")
+plt.xlabel("N")
+plt.ylabel("Proportion of False Negatives")
 plt.show()

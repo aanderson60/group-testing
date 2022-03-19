@@ -47,29 +47,36 @@ rowTests = []
 colTests = []
 diagTests = []
 diags = False
+# Getting I and n from stdin
 print("Enter the total number of individuals: ",end="")
 I = float(input())
 n = np.sqrt(I)
+# Check that matrix is square
 if not n == int(n):
     print("ERROR: Number of individuals must be in a square matrix")
     exit()
 n = int(n)
+# See if diagonal tests should be included
 print("Does this testing scheme use diagonal tests? (Y/N): ",end="")
 ans = input()
 diags = True if ans=="Y" else False
+# Make sure answer is in correct format
 if ans != "Y" and ans != "N":
     print("ERROR: Please enter Y/N only")
     exit()
 print("COMP Testing Recovery for ",n,"x",n," matrix:",sep='')
 print("")
+# Input loop for row tests
 print("Please enter the results of the row tests:")
 for i in range(n):
     print("Please enter the test result (0/1) for test R",i+1,": ",sep='',end="")
     rowTests.append(int(input()))
+# Input loop for col tests
 print("Please enter the results of the column tests:")
 for i in range(n):
     print("Please enter the test result (0/1) for test C",i+1,": ",sep='',end="")
     colTests.append(int(input()))
+# Input loop for diag tests if present
 if diags:
     print("Please enter the results of the diagonal tests:")
     for i in range(n):
@@ -86,9 +93,12 @@ print()
 print("RESULTS:")
 print("Positive individuals: ",result,sep='')
 outputM = np.zeros((n,n))
+# Fill in output matrix from the positive individual list using some math
 for item in result:
     outputM[int(np.floor((item-1)/n))][(item-1)%n] = 1
 
 print("Output Testing Matrix:")
+file = open("COMPRecoveryOutput.txt",'w')
 for row in outputM:
+    file.write(str(row)+'\n')
     print(row)
