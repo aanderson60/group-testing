@@ -87,9 +87,15 @@ def matrixSimulation():
 	# Define c = proportion of individuals incorrect to those correctly identified
 	numIncorrect = 0
 	totalCount = len(testPositives)
+	# Check for false positives
 	for item in testPositives:
 		if not item in truePositives:
 			numIncorrect+=1
+	# Check for false negatives
+	for item in truePositives:
+		if not item in testPositives:
+			numIncorrect+=1
+
 	if totalCount == 0: # Case with no positive individuals
 		c = 0.0
 	else:
@@ -229,24 +235,25 @@ print("Please input the number of simulations to be run: ")
 mc = int(input())
 monteCarlo(mc)
 '''
+plt.style.use('ggplot')
 
 sizes = []
 prevs = []
 ns = []
 results = []
-prev = 0.01
-n=2
-while n <= 40:
+prev = 0
+n=10
+while prev <= 0.05:
 	prevs.append(prev)
 	ns.append(n)
 	P = prev
 	I = n*n
 	val = monteCarlo(100) 
 	results.append(val)
-	n += 2
+	prev += 0.0025
 
-plt.plot(ns,results)
-plt.title("False Negative Rates for NxN LP Testing Scheme")
-plt.xlabel("N")
-plt.ylabel("Proportion of False Negatives")
+plt.plot(prevs,results)
+plt.title("False Positive Rates for 10x10 LP Testing Scheme")
+plt.xlabel("Prevalences")
+plt.ylabel("Proportion of False Positives")
 plt.show()
