@@ -16,7 +16,7 @@ I = 100
 # The matrix size
 n = 10
 
-from random import random
+import random
 from statistics import mean
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,6 +31,7 @@ def matrixSimulation():
 	truePositives = []
 
 	# Generate test matrix according to defined prevalance
+	'''
 	for i in range(n):
 		row = []
 		for j in range(n):
@@ -42,6 +43,24 @@ def matrixSimulation():
 				row.append(1)
 				truePositives.append(i*n+j)
 		M.append(row)
+	'''
+	# Generate positive indices with a fixed prevalance
+	for j in range(int(P*I)):
+		posIndex = random.randint(0,I-1)
+		while posIndex in truePositives:
+			# Generate a new number (prevent duplicates)
+			posIndex = random.randint(0,I-1)
+		truePositives.append(posIndex)
+	# Generate test matrix
+	for i in range(n):
+		row=[]
+		for j in range(n):
+			if i*n+j in truePositives:
+				row.append(1)
+			else:
+				row.append(0)
+		M.append(row)
+
 
 	rowTests = []
 	colTests = []
@@ -73,16 +92,16 @@ def matrixSimulation():
 	#printM(M,rowTests,colTests)
 
 	# Perform recovery algorithm to determine DND/PDs
-	#testPositives = COMP(rowTests,colTests,diagTests)
+	testPositives = COMP(rowTests,colTests,diagTests)
 	# LP Stuff
-	
+	'''
 	floatResult = linear_prog(rowTests,colTests)
 	testPositives = []
 	for i,val in enumerate(floatResult):
 		# Assume positive result if val is >10^-2
 		if val > 0.01:
 			testPositives.append(i)
-	
+	'''
 	# Compare results
 	# Define c = proportion of individuals incorrect to those correctly identified
 	numIncorrect = 0
@@ -95,7 +114,9 @@ def matrixSimulation():
 	for item in truePositives:
 		if not item in testPositives:
 			numIncorrect+=1
-
+	#if numIncorrect > 0:
+		# Going to write this to file in the future
+		#printM(M,[],[])
 	if totalCount == 0: # Case with no positive individuals
 		c = 0.0
 	else:
@@ -103,13 +124,14 @@ def matrixSimulation():
 	return c
 
 # Debugging function for printing the test matrix and row/col tests
-def printM(M,rowTests,colTests):
+def printM(M,rowTests=[],colTests=[]):
 	print("Test Matrix:")
 	for row in range(n):
 		print(M[row])
 	print()
-	print("Row Tests:",rowTests)
-	print("Column Tests:",colTests)
+	if len(rowTests) > 0 and len(colTests) > 0:
+		print("Row Tests:",rowTests)
+		print("Column Tests:",colTests)
 
 # Recovery algorithm using the COMP algorithm
 def COMP(rowTests,colTests,diagTests):
@@ -240,20 +262,26 @@ plt.style.use('ggplot')
 sizes = []
 prevs = []
 ns = []
-results = []
-prev = 0
+results100 = []
+results1k = []
+results10k = []
+prev = 0.01
 n=10
 while prev <= 0.05:
 	prevs.append(prev)
 	ns.append(n)
 	P = prev
 	I = n*n
-	val = monteCarlo(100) 
-	results.append(val)
-	prev += 0.0025
+	#results100.append(monteCarlo(100))
+	#results1k.append(monteCarlo(1000))
+	results10k.append(monteCarlo(10000))
+	prev += 0.01
 
-plt.plot(prevs,results)
-plt.title("False Positive Rates for 10x10 LP Testing Scheme")
+#plt.plot(prevs,results100,label='100')
+#plt.plot(prevs,results1k,label='1k')
+plt.plot(prevs,results10k,label='10k')
+plt.title("False Positive Rates for 10x10 COMP Testing Scheme")
 plt.xlabel("Prevalences")
 plt.ylabel("Proportion of False Positives")
+plt.legend()
 plt.show()
