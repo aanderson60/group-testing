@@ -8,7 +8,7 @@
 # TODO: Allow support for other types of testing (currently only COMP)
 
 # The desired prevalance
-P = 0.01
+P = 0.04
 
 # The number of individuals
 I = 100
@@ -121,7 +121,7 @@ def matrixSimulation():
 		c = 0.0
 	else:
 		c = numIncorrect/I
-	return c
+	return numIncorrect
 
 # Debugging function for printing the test matrix and row/col tests
 def printM(M,rowTests=[],colTests=[]):
@@ -241,8 +241,8 @@ def monteCarlo(mc):
 	results = []
 	for i in range(mc):
 		results.append(matrixSimulation())
-	outputResults(results,mc)
-	return mean(results)
+	#outputResults(results,mc)
+	return results
 
 # ------- MAIN --------
 '''
@@ -265,8 +265,9 @@ ns = []
 results100 = []
 results1k = []
 results10k = []
-prev = 0.01
+prev = 0.03
 n=10
+'''
 while prev <= 0.05:
 	prevs.append(prev)
 	ns.append(n)
@@ -276,12 +277,17 @@ while prev <= 0.05:
 	#results1k.append(monteCarlo(1000))
 	results10k.append(monteCarlo(10000))
 	prev += 0.01
-
+'''
+result = monteCarlo(10000)
 #plt.plot(prevs,results100,label='100')
 #plt.plot(prevs,results1k,label='1k')
+'''
 plt.plot(prevs,results10k,label='10k')
 plt.title("False Positive Rates for 10x10 COMP Testing Scheme")
 plt.xlabel("Prevalences")
 plt.ylabel("Proportion of False Positives")
 plt.legend()
+plt.show()
+'''
+plt.hist(result)
 plt.show()
