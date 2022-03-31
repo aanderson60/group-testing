@@ -20,7 +20,7 @@ def COMP(rowTests,colTests,n,diagTests=None):
             for y in range(len(colTests)):
                 if not((y*n+j) in DND):
                     DND.append(y*n+j)
-    if not diagTests == None:
+    if diagTests != None:
         for k in range(len(diagTests)):
             n_array = []
             for x in range(n):
