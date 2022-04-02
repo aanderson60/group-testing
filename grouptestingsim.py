@@ -272,7 +272,7 @@ while prev <= 0.05:
 	prevs.append(prev)
 	ns.append(n)
 	P = prev
-	I = n*n
+	I = n*d
 	#results100.append(monteCarlo(100))
 	#results1k.append(monteCarlo(1000))
 	results10k.append(monteCarlo(10000))
