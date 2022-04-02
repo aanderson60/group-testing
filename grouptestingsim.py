@@ -8,7 +8,7 @@
 # TODO: Allow support for other types of testing (currently only COMP)
 
 # The desired prevalance
-P = 0.04
+P = 0.03
 
 # The number of individuals
 I = 100
@@ -258,7 +258,7 @@ mc = int(input())
 monteCarlo(mc)
 '''
 plt.style.use('ggplot')
-
+'''
 sizes = []
 prevs = []
 ns = []
@@ -267,7 +267,7 @@ results1k = []
 results10k = []
 prev = 0.03
 n=10
-'''
+
 while prev <= 0.05:
 	prevs.append(prev)
 	ns.append(n)
@@ -278,7 +278,7 @@ while prev <= 0.05:
 	results10k.append(monteCarlo(10000))
 	prev += 0.01
 '''
-result = monteCarlo(10000)
+result = monteCarlo(100000)
 #plt.plot(prevs,results100,label='100')
 #plt.plot(prevs,results1k,label='1k')
 '''
