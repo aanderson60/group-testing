@@ -28,7 +28,7 @@ from scipy.optimize import linprog
 
 
 # Function that will build the test matrix and run the testing scheme
-def matrixSimulation():
+def matrixSimulation(a=False):
     # The test matrix M
     M = []
 
@@ -94,21 +94,23 @@ def matrixSimulation():
             if idx == 1:
                 diagTests[diag] = 1
     
-    flipM = np.fliplr(M)
-    
+   
 
-    
-    for adiag in range(n):
-        adiagTests.append(0)
-        combo = np.concatenate((np.diagonal(flipM,adiag),np.diagonal(flipM,-(n-adiag))))
-        for idx in combo:
-            if idx == 1:
-                adiagTests[adiag] = 1
+    if a: # do antidiag testing
+        flipM = np.fliplr(M)
+        for adiag in range(n):
+            adiagTests.append(0)
+            combo = np.concatenate((np.diagonal(flipM,adiag),np.diagonal(flipM,-(n-adiag))))
+            for idx in combo:
+                if idx == 1:
+                    adiagTests[adiag] = 1
         
-    printM(M)
+        testPositives = COMP(rowTests,colTests,diagTests,adiagTests)
+    else:
+        testPositives = COMP(rowTests,colTests,diagTests)
+        
     # Perform recovery algorithm to determine DND/PDs
-    testPositives = COMP(rowTests,colTests,diagTests,adiagTests)
-    print(testPositives)
+    
     # LP Stuff
     '''
     floatResult = linear_prog(rowTests,colTests)
@@ -187,19 +189,17 @@ def COMP(rowTests,colTests,diagTests,adiagTests=[]):
             for item in diag:
                 if not item in DND:
                     DND.append(item)
-                  
+
     for k in range(len(adiagTests)):
         if adiagTests[k] == 0:
             # Add entire diag to DND list
             diag = np.concatenate((np.diagonal(np.fliplr(n_array),k),np.diagonal(np.fliplr(n_array),-(n-k))))
-            print(diag)
             for item in diag:
                 if not item in DND:
-                    DND.append(item)             
-    printM(adiagTests)
+                    DND.append(item)    
+                    
     
         
-    
     # Now determine the PDs where the PDs are whatever does not exist in the DNDs
     for m in range(I):
         if not (m in DND):
@@ -271,10 +271,10 @@ def outputResults(results, mc):
     print("Results for simulation of size ",mc,", a prevalance of ", P, " and a matrix size of ",n,"x",n," : ",round(mean(results),4),sep="")
 
 # Monte-Carlo simulation
-def monteCarlo(mc):
+def monteCarlo(mc, a=False):
     results = []
     for i in range(mc):
-        results.append(matrixSimulation())
+        results.append(matrixSimulation(a))
     #outputResults(results,mc)
     return results
 
@@ -293,34 +293,7 @@ print("Please input the number of simulations to be run: ")
 mc = int(input())
 monteCarlo(mc)
 '''
-plt.style.use('ggplot')
 
-sizes = []
-prevs = []
-ns = []
-results100 = []
-results1k = []
-results10k = []
-prev = 0.04
-n=10
-'''
-while prev <= 0.05:
-    prevs.append(prev)
-    ns.append(n)
-    P = prev
-    I = n*d
-    #results100.append(monteCarlo(100))
-    #results1k.append(monteCarlo(1000))
-    results10k.append(monteCarlo(10000))
-    prev += 0.01
-'''
-
-#plt.plot(prevs,results100,label='100')
-#plt.plot(prevs,results1k,label='1k')
-
-
-a=matrixSimulation()
-print(a)
 """
 ******
 Plots below for Histograms with varying prevalence
@@ -375,5 +348,53 @@ plt.title("False Positives for 10000 Simulations with 5% Prevalence")
 plt.gca().set_xticks(labels)
 plt.savefig("Histogram10k5padiag")
 plt.show()'''
+
+
+
+"""
+Plots below for average 
+false positives for varying prevalances for
+4 total pools (COMP4):
+    anti-diag
+    diag
+    rows
+    cols
+3 total pools (COMP3):
+    diag
+    rows
+    cols
+"""
+
+plt.style.use('ggplot')
+
+P = 0.02
+COMP4 = []
+COMP3 = []
+prevs = []
+
+while P <= 0.05:
+    prevs.append(P)
+    COMP4.append(mean(monteCarlo(1000, True)))
+    P += 0.01
+    
+P = 0.02
+
+while P <= 0.05:
+    COMP3.append(mean(monteCarlo(10000)))
+    P += 0.01
+    
+plt.plot(prevs, COMP3, label="COMP5")
+plt.plot(prevs, COMP4, label="COMP4")
+plt.xlabel("Prevalences")
+plt.ylabel("Average Percentage of False Positives")
+plt.legend()
+plt.title("10k tests for varying prevalences with 2 different COMP pooling schemes")
+
+    
+    
+
+
+
+
 
 
