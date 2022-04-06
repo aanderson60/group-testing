@@ -389,12 +389,4 @@ plt.xlabel("Prevalences")
 plt.ylabel("Average Percentage of False Positives")
 plt.legend()
 plt.title("10k tests for varying prevalences with 2 different COMP pooling schemes")
-
-    
-    
-
-
-
-
-
-
+plt.show()
