@@ -8,7 +8,7 @@
 # TODO: Allow support for other types of testing (currently only COMP)
 
 # The desired prevalance
-P = 0.03
+P = 0.1
 
 # The number of individuals
 I = 100
@@ -152,13 +152,8 @@ def COMP(rowTests,colTests,diagTests):
 			for y in range(len(colTests)):
 				if not((y*n+j) in DND):
 					DND.append(y*n+j)
+	n_array = np.arange(0, 100).reshape(10, 10)
 	for k in range(len(diagTests)):
-		n_array = []
-		for x in range(n):
-			row = []
-			for y in range(n):
-				row.append(x*n+y)
-			n_array.append(row)
 		if diagTests[k] == 0:
 			# Add entire diag to DND list
 			diag = np.concatenate((np.diagonal(n_array,k),np.diagonal(n_array,-(n-k))))
