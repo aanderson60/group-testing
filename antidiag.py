@@ -374,7 +374,7 @@ prevs = []
 
 while P <= 0.05:
     prevs.append(P)
-    COMP4.append(mean(monteCarlo(1000, True)))
+    COMP4.append(mean(monteCarlo(10000, True)))
     P += 0.01
     
 P = 0.02
@@ -383,7 +383,7 @@ while P <= 0.05:
     COMP3.append(mean(monteCarlo(10000)))
     P += 0.01
     
-plt.plot(prevs, COMP3, label="COMP5")
+plt.plot(prevs, COMP3, label="COMP3")
 plt.plot(prevs, COMP4, label="COMP4")
 plt.xlabel("Prevalences")
 plt.ylabel("Average Percentage of False Positives")
