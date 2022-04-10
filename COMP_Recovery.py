@@ -69,6 +69,10 @@ def COMP(rowTests,colTests,n,diagTests=None):
     PD = np.array(PD)
     DD = np.array(DD)
 
+    np.sort(DND)
+    np.sort(PD)
+    np.sort(DD)
+
     return((DND,PD,DD))
 
 # ---------- MAIN -----------
