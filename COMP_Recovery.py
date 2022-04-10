@@ -64,16 +64,51 @@ def COMP(rowTests,colTests,n,diagTests=None):
         for item in PD:
             DD.append(item)
         PD = []
-    
+
+    # Unexplained tests
+    # These unexplained items may help indicate where false negatives are (from lab/human error)
+    # However, many of these will be unnecessary in working trials
+    posIndivs = []
+    unexplainedIndivs = []
+    for i,item in enumerate(rowTests):
+        if item == 1:
+            for j in range(len(rowTests)):
+                if i*n+j not in posIndivs:
+                    posIndivs.append(i*n+j)
+                else:
+                    if i*n+j not in DD and i*n+j not in PD:
+                        unexplainedIndivs.append(i*n+j)
+    for i,item in enumerate(colTests):
+        if item == 1:
+            for j in range(len(colTests)):
+                if j*n+i not in posIndivs:
+                    posIndivs.append(j*n+i)
+                else:
+                    if j*n+i not in DD and j*n+i not in PD:
+                        unexplainedIndivs.append(j*n+i)
+    if diagTests != None:
+        for i,item in enumerate(diagTests):
+            if item == 1:
+                diag = np.concatenate((np.diagonal(n_array,i),np.diagonal(n_array,-(n-i))))
+                for item in diag:
+                    if item not in posIndivs:
+                        posIndivs.append(item)  
+                    else:
+                        if item not in DD and item not in PD:
+                            unexplainedIndivs.append(item)
+    print(posIndivs)
+
     DND = np.array(DND)
     PD = np.array(PD)
     DD = np.array(DD)
+    unexplainedIndivs = np.array(unexplainedIndivs)
 
     np.sort(DND)
     np.sort(PD)
     np.sort(DD)
+    np.sort(unexplainedIndivs)
 
-    return((DND,PD,DD))
+    return((DND,PD,DD,unexplainedIndivs))
 
 # ---------- MAIN -----------
 rowTests = []
@@ -101,11 +136,14 @@ print("COMP Testing Recovery for ",n,"x",n," matrix:",sep='')
 print("")
 # Input loop for row tests
 print("Please enter the results of the row tests:")
+
 for i in range(n):
     print("Please enter the test result (0/1) for test R",i+1,": ",sep='',end="")
     rowTests.append(int(input()))
 # Input loop for col tests
+
 print("Please enter the results of the column tests:")
+
 for i in range(n):
     print("Please enter the test result (0/1) for test C",i+1,": ",sep='',end="")
     colTests.append(int(input()))
@@ -115,6 +153,8 @@ if diags:
     for i in range(n):
         print("Please enter the test result (0/1) for test D",i+1,": ",sep='',end="")
         diagTests.append(int(input()))
+
+print(rowTests,colTests,diagTests)
 if diags:
     result = COMP(rowTests,colTests,n,diagTests)
 else:
@@ -127,15 +167,22 @@ print("RESULTS:")
 print("Definite Non-Defectives: ",result[0],sep='\n')
 print("Definite Defectives: ",result[2])
 print("Indeterminate Individuals: ",result[1])
+print("Unexplained Individuals (PD): ",result[3])
 print()
-outputM = np.zeros((n,n))
+outputM = np.chararray((n,n),unicode=True)
+outputM[:][:] = '0'
 # Fill in output matrix from the positive individual list using some math
 print("Definite Defective Matrix: ")
 for item in result[2]:
     outputM[int(np.floor((item-1)/n))][(item-1)%n] = 1
+for item in result[3]:
+    outputM[int(np.floor((item-1)/n))][(item-1)%n] = '?'
 
 print("Output Testing Matrix:")
 file = open("COMPRecoveryOutput.txt",'w')
 for row in outputM:
     file.write(str(row)+'\n')
-    print(row)
+    print("[ ",end='')
+    for item in row:
+        print(item+' ',end='')
+    print("]",end='\n')

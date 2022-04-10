@@ -21,6 +21,7 @@ from statistics import mean
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import linprog
+import math
 
 # Function that will build the test matrix and run the testing scheme
 def matrixSimulation():
@@ -225,6 +226,57 @@ def linear_prog(rowTests,colTests):
 		bounds.append(z_bound)
 	result = linprog(c,A_ub,b_ub_t,A_eq,b_eq_t,bounds)
 	return result["x"]
+	
+def DD(rowTests, colTests, diagTests):
+	# Use DD algorithm to find defectives
+	# 1) Any item in a negative test is DND
+	# 2) If an item is the only one in a positive test it is DD
+	# The possible defectives
+	PD = []
+	# The definite non-defectives
+	DND = []
+	posTestItems = []
+	# First determine the definite non-defectives
+	for i in range(len(rowTests)):
+		if rowTests[i] == 0:
+			# Add the entire row to the DND list
+			for x in range(len(rowTests)):
+				DND.append(i*n+x)
+		if rowTests[i] == 1:
+			for x in range(len(rowTests)):
+				posTestItems.append(i*n+x)
+	for j in range(len(colTests)):
+		if colTests[j] == 0:
+			# Add the entire col to the DND list (if not already present)
+			for y in range(len(colTests)):
+				if not((y*n+j) in DND):
+					DND.append(y*n+j)
+		if colTests[j] == 1:
+			for y in range(len(colTests)):
+				if not ((y*n+j) in posTestItems):
+					posTestItems.append(y*n+j)
+	n_array = np.arange(0, 100).reshape(10, 10)
+	for k in range(len(diagTests)):
+		if diagTests[k] == 0:
+			# Add entire diag to DND list
+			diag = np.concatenate((np.diagonal(n_array,k),np.diagonal(n_array,-(n-k))))
+			for item in diag:
+				if not item in DND:
+					DND.append(item)
+		if diagTests[k] == 1:
+			diag = np.concatenate((np.diagonal(n_array,k),np.diagonal(n_array,-(n-k))))
+			for item in diag:
+				if not item in posTestItems:
+					posTestItems.append(item)
+	# Now determine the PDs where the PDs are whatever does not exist in the DNDs
+	for m in range(I):
+		if not (m in DND):
+			PD.append(m)
+	
+	# Determine DDs from PDs
+	for item in PD:
+		
+		
 	
 
 # Output results
