@@ -8,7 +8,7 @@
 # TODO: Allow support for other types of testing (currently only COMP)
 
 # The desired prevalance
-P = 0.1
+P = 0.03
 
 # The number of individuals
 I = 100
@@ -22,9 +22,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import linprog
 import math
+import seaborn as sbn
+import matplotlib.pylab as plb
+from itertools import combinations
 
 # Function that will build the test matrix and run the testing scheme
-def matrixSimulation():
+def matrixSimulation(desiredPositives=None):
 	# The test matrix M
 	M = []
 
@@ -46,22 +49,33 @@ def matrixSimulation():
 		M.append(row)
 	'''
 	# Generate positive indices with a fixed prevalance
-	for j in range(int(P*I)):
-		posIndex = random.randint(0,I-1)
-		while posIndex in truePositives:
-			# Generate a new number (prevent duplicates)
+	if desiredPositives == None:
+		for j in range(int(P*I)):
 			posIndex = random.randint(0,I-1)
-		truePositives.append(posIndex)
-	# Generate test matrix
-	for i in range(n):
-		row=[]
-		for j in range(n):
-			if i*n+j in truePositives:
-				row.append(1)
-			else:
-				row.append(0)
-		M.append(row)
-
+			while posIndex in truePositives:
+				# Generate a new number (prevent duplicates)
+				posIndex = random.randint(0,I-1)
+			truePositives.append(posIndex)
+		# Generate test matrix
+		for i in range(n):
+			row=[]
+			for j in range(n):
+				if i*n+j in truePositives:
+					row.append(1)
+				else:
+					row.append(0)
+			M.append(row)
+	else:
+		for item in desiredPositives:
+			truePositives.append(item)
+		for i in range(n):
+			row=[]
+			for j in range(n):
+				if i*n+j in truePositives:
+					row.append(1)
+				else:
+					row.append(0)
+			M.append(row)
 
 	rowTests = []
 	colTests = []
@@ -103,6 +117,7 @@ def matrixSimulation():
 		if val > 0.01:
 			testPositives.append(i)
 	'''
+	falsePositives = []
 	# Compare results
 	# Define c = proportion of individuals incorrect to those correctly identified
 	numIncorrect = 0
@@ -110,6 +125,7 @@ def matrixSimulation():
 	# Check for false positives
 	for item in testPositives:
 		if not item in truePositives:
+			falsePositives.append(item)
 			numIncorrect+=1
 	# Check for false negatives
 	for item in truePositives:
@@ -118,11 +134,13 @@ def matrixSimulation():
 	#if numIncorrect > 0:
 		# Going to write this to file in the future
 		#printM(M,[],[])
+	if len(falsePositives) != numIncorrect:
+		raise Exception("Number of false positives not equal to number incorrect (false negative detected; something went wrong!)")
 	if totalCount == 0: # Case with no positive individuals
 		c = 0.0
 	else:
 		c = numIncorrect/I
-	return numIncorrect
+	return (numIncorrect,falsePositives)
 
 # Debugging function for printing the test matrix and row/col tests
 def printM(M,rowTests=[],colTests=[]):
@@ -153,7 +171,7 @@ def COMP(rowTests,colTests,diagTests):
 			for y in range(len(colTests)):
 				if not((y*n+j) in DND):
 					DND.append(y*n+j)
-	n_array = np.arange(0, 100).reshape(10, 10)
+	n_array = np.arange(0, I).reshape(n, n)
 	for k in range(len(diagTests)):
 		if diagTests[k] == 0:
 			# Add entire diag to DND list
@@ -227,6 +245,7 @@ def linear_prog(rowTests,colTests):
 	result = linprog(c,A_ub,b_ub_t,A_eq,b_eq_t,bounds)
 	return result["x"]
 	
+# WIP Function
 def DD(rowTests, colTests, diagTests):
 	# Use DD algorithm to find defectives
 	# 1) Any item in a negative test is DND
@@ -255,7 +274,7 @@ def DD(rowTests, colTests, diagTests):
 			for y in range(len(colTests)):
 				if not ((y*n+j) in posTestItems):
 					posTestItems.append(y*n+j)
-	n_array = np.arange(0, 100).reshape(10, 10)
+	n_array = np.arange(0, I).reshape(n, n)
 	for k in range(len(diagTests)):
 		if diagTests[k] == 0:
 			# Add entire diag to DND list
@@ -272,10 +291,6 @@ def DD(rowTests, colTests, diagTests):
 	for m in range(I):
 		if not (m in DND):
 			PD.append(m)
-	
-	# Determine DDs from PDs
-	for item in PD:
-		
 		
 	
 
@@ -285,11 +300,28 @@ def outputResults(results, mc):
 
 # Monte-Carlo simulation
 def monteCarlo(mc):
-	results = []
+	failureRates = []
+	falsePositives = []
 	for i in range(mc):
-		results.append(matrixSimulation())
+		results = matrixSimulation()
+		for item in results[1]:
+			falsePositives.append(item)
+		failureRates.append(results[0])
 	#outputResults(results,mc)
-	return results
+	return (failureRates,falsePositives)
+
+# Function to exhaust every possibility for a 10x10 matrix with 3 positive individuals
+def desiredPositivesSweep():
+	failureRates = []
+	falsePositives = []
+	arr = np.linspace(0,99,100,dtype=int)
+	comb = combinations(arr,3)
+	for i in list(comb):
+		result = matrixSimulation(i)
+		for item in result[1]:
+			falsePositives.append(item)
+		failureRates.append(result[0])
+	return (failureRates, falsePositives)
 
 # ------- MAIN --------
 '''
@@ -324,17 +356,28 @@ while prev <= 0.05:
 	#results1k.append(monteCarlo(1000))
 	results10k.append(monteCarlo(10000))
 	prev += 0.01
-'''
+
 result = monteCarlo(100000)
 #plt.plot(prevs,results100,label='100')
 #plt.plot(prevs,results1k,label='1k')
-'''
+
 plt.plot(prevs,results10k,label='10k')
 plt.title("False Positive Rates for 10x10 COMP Testing Scheme")
 plt.xlabel("Prevalences")
 plt.ylabel("Proportion of False Positives")
 plt.legend()
 plt.show()
-'''
+
 plt.hist(result)
+plt.show()
+'''
+# Heat map of false positives
+result = desiredPositivesSweep()
+falsePositives = np.array(result[1])
+outputM = np.zeros((n,n))
+# Must convert false positive individual numbers into nxn array
+for item in falsePositives:
+	outputM[int(np.floor((item-1)/n))][(item-1)%n] += 1
+
+ax = sbn.heatmap(outputM)
 plt.show()

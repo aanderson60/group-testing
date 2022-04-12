@@ -36,7 +36,7 @@ def COMP(rowTests,colTests,n,diagTests=None):
                 if not((y*n+j) in DND):
                     DND.append(y*n+j)
     # Generate indexing array for diagonals
-    n_array = np.arange(0, 100).reshape(10, 10)
+    n_array = np.arange(0, I).reshape(n, n)
     if diagTests != None:
         for k in range(len(diagTests)):
             if diagTests[k] == 0:
