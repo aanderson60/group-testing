@@ -68,8 +68,13 @@ def COMP(rowTests,colTests,n,diagTests=None):
     # Unexplained tests
     # These unexplained items may help indicate where false negatives are (from lab/human error)
     # However, many of these will be unnecessary in working trials
+    # These are only applicable if the number of tests are incorrect (i.e. false negative lab error) - how to check for this??
+
     posIndivs = []
     unexplainedIndivs = []
+
+    # These loops basically create a list of individuals in positive tests, and if they appear in more than
+    #   one positive test, flags them as unexplained - this is kind of a variation on the SCOMP algorithm [Aldridge et al.]
     for i,item in enumerate(rowTests):
         if item == 1:
             for j in range(len(rowTests)):
@@ -96,8 +101,8 @@ def COMP(rowTests,colTests,n,diagTests=None):
                     else:
                         if item not in DD and item not in PD:
                             unexplainedIndivs.append(item)
-    print(posIndivs)
 
+    # Convert to Numpy arrays and sort so that we can manipulate these later
     DND = np.array(DND)
     PD = np.array(PD)
     DD = np.array(DD)
@@ -172,6 +177,7 @@ print()
 outputM = np.chararray((n,n),unicode=True)
 outputM[:][:] = '0'
 # Fill in output matrix from the positive individual list using some math
+# Also fill in unexplained individuals with a '?' (note that this may or may not indicate a positive sample (see above))
 print("Definite Defective Matrix: ")
 for item in result[2]:
     outputM[int(np.floor((item-1)/n))][(item-1)%n] = 1
