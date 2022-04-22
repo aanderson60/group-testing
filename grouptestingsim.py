@@ -22,9 +22,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import linprog
 import math
-import seaborn as sbn
+import seaborn as sns
 import matplotlib.pylab as plb
 from itertools import combinations
+from matplotlib import animation
 
 # Function that will build the test matrix and run the testing scheme
 def matrixSimulation(desiredPositives=None):
@@ -311,17 +312,23 @@ def monteCarlo(mc):
 	return (failureRates,falsePositives)
 
 # Function to exhaust every possibility for a 10x10 matrix with 3 positive individuals
-def desiredPositivesSweep():
+def desiredPositivesSweep(start,stop):
 	failureRates = []
 	falsePositives = []
-	arr = np.linspace(0,99,100,dtype=int)
+	arr = np.linspace(start,stop,10,dtype=int)
 	comb = combinations(arr,3)
-	for i in list(comb):
+	for j,i in enumerate(list(comb)):
 		result = matrixSimulation(i)
 		for item in result[1]:
 			falsePositives.append(item)
 		failureRates.append(result[0])
-	return (failureRates, falsePositives)
+	falsePositives = np.array(result[1])
+	outputM = np.zeros((n,n))
+	# Must convert false positive individual numbers into nxn array
+	for item in falsePositives:
+		outputM[int(np.floor((item-1)/n))][(item-1)%n] += 1
+	return outputM
+
 
 # ------- MAIN --------
 '''
@@ -336,7 +343,7 @@ print("Please input the number of simulations to be run: ")
 mc = int(input())
 monteCarlo(mc)
 '''
-plt.style.use('ggplot')
+#plt.style.use('ggplot')
 '''
 sizes = []
 prevs = []
@@ -372,12 +379,6 @@ plt.hist(result)
 plt.show()
 '''
 # Heat map of false positives
-result = desiredPositivesSweep()
-falsePositives = np.array(result[1])
-outputM = np.zeros((n,n))
-# Must convert false positive individual numbers into nxn array
-for item in falsePositives:
-	outputM[int(np.floor((item-1)/n))][(item-1)%n] += 1
-
-ax = sbn.heatmap(outputM)
+outputM = desiredPositivesSweep()
+ax = sns.heatmap(outputM)
 plt.show()
