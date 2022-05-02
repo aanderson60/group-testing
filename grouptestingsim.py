@@ -8,13 +8,13 @@
 # TODO: Allow support for other types of testing (currently only COMP)
 
 # The desired prevalance
-P = 0.03
+P = 0.0055555
 
 # The number of individuals
-I = 100
+I = 900
 
 # The matrix size
-n = 10
+n = 30
 
 import random
 from statistics import mean
@@ -51,7 +51,7 @@ def matrixSimulation(desiredPositives=None):
 	'''
 	# Generate positive indices with a fixed prevalance
 	if desiredPositives == None:
-		for j in range(int(P*I)):
+		for j in range(round(P*I)):
 			posIndex = random.randint(0,I-1)
 			while posIndex in truePositives:
 				# Generate a new number (prevent duplicates)
@@ -81,7 +81,6 @@ def matrixSimulation(desiredPositives=None):
 	rowTests = []
 	colTests = []
 	diagTests = []
-
 	# Perform 'tests' on rows and columns (and diags)
 	# If any individual is positive in the row/col, the entire test will return a 'positive' result
 
@@ -105,7 +104,7 @@ def matrixSimulation(desiredPositives=None):
 				diagTests[diag] = 1
 		
 
-	#printM(M,rowTests,colTests)
+	#printM(M,rowTests,colTests,diagTests)
 
 	# Perform recovery algorithm to determine DND/PDs
 	testPositives = COMP(rowTests,colTests,diagTests)
@@ -141,17 +140,19 @@ def matrixSimulation(desiredPositives=None):
 		c = 0.0
 	else:
 		c = numIncorrect/I
-	return (numIncorrect,falsePositives)
+	# Return the specificity ratio and which items were 'false positive'
+	return ((I-numIncorrect)/I,len(testPositives))
 
 # Debugging function for printing the test matrix and row/col tests
-def printM(M,rowTests=[],colTests=[]):
+def printM(M,rowTests=[],colTests=[],diagTests=[]):
 	print("Test Matrix:")
 	for row in range(n):
 		print(M[row])
 	print()
-	if len(rowTests) > 0 and len(colTests) > 0:
+	if len(rowTests) > 0 and len(colTests) > 0 and len(diagTests) > 0:
 		print("Row Tests:",rowTests)
 		print("Column Tests:",colTests)
+		print("Diag Tests: ",diagTests)
 
 # Recovery algorithm using the COMP algorithm
 def COMP(rowTests,colTests,diagTests):
@@ -305,11 +306,10 @@ def monteCarlo(mc):
 	falsePositives = []
 	for i in range(mc):
 		results = matrixSimulation()
-		for item in results[1]:
-			falsePositives.append(item)
+		falsePositives.append(results[1])
 		failureRates.append(results[0])
-	#outputResults(results,mc)
-	return (failureRates,falsePositives)
+	outputResults(failureRates,mc)
+	return (mean(failureRates),falsePositives)
 
 # Function to exhaust every possibility for a 10x10 matrix with 3 positive individuals
 def desiredPositivesSweep(start,stop):
@@ -343,42 +343,53 @@ print("Please input the number of simulations to be run: ")
 mc = int(input())
 monteCarlo(mc)
 '''
-#plt.style.use('ggplot')
-'''
+plt.style.use('seaborn-paper')
+
 sizes = []
 prevs = []
 ns = []
+tests = []
 results100 = []
 results1k = []
 results10k = []
-prev = 0.03
+prev = 0.02
 n=10
 
-while prev <= 0.05:
+while n <= 50:
 	prevs.append(prev)
 	ns.append(n)
+	tests.append(3*n)
 	P = prev
-	I = n*d
+	I = n*n
 	#results100.append(monteCarlo(100))
 	#results1k.append(monteCarlo(1000))
-	results10k.append(monteCarlo(10000))
-	prev += 0.01
+	results10k.append(monteCarlo(1000)[0])
+	n += 5
 
-result = monteCarlo(100000)
+#result = monteCarlo(10000)[1]
 #plt.plot(prevs,results100,label='100')
 #plt.plot(prevs,results1k,label='1k')
 
-plt.plot(prevs,results10k,label='10k')
-plt.title("False Positive Rates for 10x10 COMP Testing Scheme")
-plt.xlabel("Prevalences")
-plt.ylabel("Proportion of False Positives")
-plt.legend()
+plt.plot(tests,results10k)
+plt.title("Specificity of 10x10 COMP3 Scheme for Varying Number of Samples")
+plt.xlabel("Number of Tests")
+plt.ylabel("Specificity")
+plt.grid(linestyle='--',linewidth=0.5)
 plt.show()
-
-plt.hist(result)
+plt.plot(ns,results10k)
+plt.grid(linestyle='--',linewidth=0.5)
+plt.show()
+'''
+result = np.array(result)
+bins = np.arange(result.min(), result.max() + 1.5) - 0.5
+fig,ax = plt.subplots()
+_= ax.hist(result,bins,rwidth=0.75)
+ax.set_xticks(bins+0.5)
 plt.show()
 '''
 # Heat map of false positives
+'''
 outputM = desiredPositivesSweep()
 ax = sns.heatmap(outputM)
 plt.show()
+'''
