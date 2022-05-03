@@ -27,15 +27,58 @@ def sensingMatrixInput(filename):
 # Returns:
 #   The array of test results, length equal to the number of tests
 #
-def positiveTestInput(filename):
+def testInput(filename):
     with open(filename,"r") as file:
         tests = [int(x) for x in file.readline().split()]
     tests = np.array(tests)
-    print(tests)
     return tests
 
+# Function to apply COMP algorithm recovery to sensing matrix and tests
+# Args:
+#   sensingMatrix: the sensing matrix of the scheme
+#   tests: the pooled test results, corresponding to the sensing matrix order
+#   n: the number of items
+# Returns:
+#   The probable defectives, the definite non-defectives
+#
+def COMP(sensingMatrix, n, tests):
+    # The probable defectives
+    PDs = []
+    # The definite non defectives
+    DNDs = []
 
-def COMP(sensingMatrix, tests, n):
+    # First determine DNDs
+    for i,result in enumerate(tests):
+        # Test is negative
+        if result == 0:
+            # Check sensing matrix for which items participated in this test
+            for j,row in enumerate(sensingMatrix):
+                if row[i] == 1 and j not in DNDs:
+                    DNDs.append(j)
     
+    # Now determine the PDs
+    for x in range(n):
+        if not (x in DNDs):
+            PDs.append(x)
 
-positiveTestInput("testresults.txt")
+    # Cast arrays to numpy arrays
+    PDs = np.array(PDs)
+    DNDs = np.array(DNDs)
+
+    # Add 1 to every item number to normalize them to start at 1 instead of 0
+    PDs += 1
+    DNDs += 1
+
+    return (PDs,DNDs)
+
+
+# --------- MAIN ----------
+filename1 = input("Enter the filename for the sensing matrix: ")
+filename2 = input("Enter the filename for the pooled test results: ")
+tests = testInput(filename2)
+sm, n = sensingMatrixInput(filename1)
+PD, DND = COMP(sm,n,tests)
+print("Definite Non Defectives:")
+print(DND)
+print("Probable Defectives:")
+print(PD)
